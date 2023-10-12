@@ -58,6 +58,7 @@ contexts:
       push:
         - meta_scope: variable.language meta.keybind
         - match: '>(?=[^>])'
+          scope: punctuation.definition.keybind.end.help
           pop: true
   inline-code-block:
     - match: '`'
