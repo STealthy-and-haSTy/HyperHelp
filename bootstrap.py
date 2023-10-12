@@ -45,9 +45,5 @@ def plugin_loaded():
             topic = topic or settings.get("hyperhelp.initial_topic")
             settings.erase("hyperhelp.initial_topic")
 
-    if topic is not None and hh_setting("show_changelog"):
-        package, topic = topic.split(":")
-        display_topic(package, topic)
-
 
 ### ---------------------------------------------------------------------------

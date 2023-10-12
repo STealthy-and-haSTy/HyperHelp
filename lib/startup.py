@@ -14,13 +14,6 @@ def _should_bootstrap(settings):
     This checks both for the existence of the package as well as for when the
     bootstrapped version is different from ours.
     """
-    # For debugging/testing/troubleshooting purposes, this allows you to set a
-    # setting that forces the bootstrap to occur, even if it doesn't need to be
-    # done.
-    if settings.get("hyperhelp.force_bootstrap", False):
-        log("hyperhelp bootstrap forced; skipping check")
-        return True
-
     try:
         from importlib import __import__ as do_import
         from hyperhelpcore import __version__ as mp_sys_version
@@ -72,10 +65,6 @@ def initialize():
     # install the bootstrapped package directly and might not know what it's
     # for.
     if bootstrap_pkg in ignored_packages:
-        if settings.get("hyperhelp.ignore_disabled", False):
-            return log("{pkg_name} package ignored; hyperhelp disabled",
-                        pkg_name=bootstrap_pkg)
-
         return log(
             """
             The {pkg_name} package is currently disabled.
@@ -97,19 +86,6 @@ def initialize():
     # warning instead, in which case we proceed.
     pkg_folder = os.path.join(sublime.packages_path(), bootstrap_pkg)
     if os.path.lexists(pkg_folder):
-        if settings.get("hyperhelp.allow_unpacked", False) == False:
-            return log(
-                """
-                The {pkg_name} package is unpacked.
-
-                This package should not be overridden as it
-                blocks updates and causes problems with
-                bootstrapping.
-
-                Please remove the {pkg_name} folder from
-                the Packages folder and restart sublime.
-                """, pkg_name=bootstrap_pkg, error=True)
-
         log("hyperhelpcore system package {pkg_name} is unpacked; issues may arise",
             pkg_name=bootstrap_pkg)
 

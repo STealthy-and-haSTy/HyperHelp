@@ -216,16 +216,8 @@
                 "caption": "Setting: hyperhelp_date_format"
             },
             {
-                "topic": "show_changelog",
-                "caption": "Setting: show_changelog"
-            },
-            {
                 "topic": "focus_links_at_top",
                 "caption": "Setting: focus_links_at_top"
-            },
-            {
-                "topic": "hyperhelp.ignore_disabled",
-                "caption": "Setting: hyperhelp.ignore_disabled"
             }
         ],
 

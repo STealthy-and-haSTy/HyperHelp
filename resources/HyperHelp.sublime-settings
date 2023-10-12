@@ -3,17 +3,6 @@
     // view. This uses the standard Python date format string formatting codes.
     "hyperhelp_date_format": "%x",
 
-    // When HyperHelp is first installed and every time it's updated, it will
-    // request that you restart Sublime to ensure that everything reloads
-    // properly.
-    //
-    // If this setting is enabled, then on that restart HyperHelp will open and
-    // display either its own changelog or the help on help topic.
-    //
-    // Disable this to not see the changelog (or the help on help, if you have
-    // previously installed the package).
-    "show_changelog": true,
-
     // When following a link, HyperHelp needs to display the correct help file
     // and ensure that the anchor is visible in the window. This setting
     // controls where the anchor will end up.
