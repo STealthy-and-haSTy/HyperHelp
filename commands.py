@@ -14,7 +14,6 @@ from .lib.core import parse_anchor_body
 from .lib.help import HistoryData, _get_link_topic
 
 
-from .bootstrap import __version__ as local_version
 from .lib import __version__ as sys_version
 
 
@@ -576,13 +575,12 @@ class HyperHelpAboutCommand(sublime_plugin.ApplicationCommand):
         msg = textwrap.dedent("""
             About HyperHelp
 
-            HyperHelp Version: {local}
-            hyperhelpcore Version: {sys}
+            HyperHelp Version: {sys}
 
             HyperHelp is a text based, hyper linked help system for
-            Sublime Text 3 that allows packages to display their
-            help directly within Sublime Text.
-        """).format(local=local_version, sys=sys_version).strip()
+            Sublime Text that allows packages to display their help
+            directly within Sublime Text.
+        """).format(sys=sys_version).strip()
         log(msg, dialog=True)
 
 
