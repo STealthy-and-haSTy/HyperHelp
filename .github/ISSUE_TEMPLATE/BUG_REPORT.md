@@ -30,6 +30,6 @@ assignees: OdatNurd
 
 [The environment you experienced this bug in.]
 
-- Sublime Text build: [3176]
+- Sublime Text build: [4152]
 - hyperhelp version: v[0.0.1]
 - Operating System: [Windows/MacOS/Linux]

@@ -13,7 +13,7 @@ You can get in touch via the following options:
  * [odatnurd.net](https://odatnurd.net)
 
 Before filing a bug report or feature request, please first check the
-[issue tracker](https://github.com/STealthy-and-haSTy/hyperhelpcore/issues)
+[issue tracker](https://github.com/STealthy-and-haSTy/HyperHelp/issues)
 to see if what you're experiencing or requesting has already been reported. If
 so you can weigh in on the existing issue with any additional details or
 information you might have to help fix the problem or guide development.
@@ -47,9 +47,9 @@ more useful, please let us know.
 When filing a feature request try to provide a succinct description of what you
 think the functionality should do. Depending on the feature you may also want
 to provide a step by step list of the actions in Sublime/HyperHelp that
-would lead to your requested feature being used, but this is not neccesary.
+would lead to your requested feature being used, but this is not necessary.
 
-We're commited to ensuring that HyperHelp works for everyone regardless of
+We're committed to ensuring that HyperHelp works for everyone regardless of
 the operating system they're running on, so when requesting a feature you
 don't need to specify the environment you're running everything in (but we
 won't get mad if you do).

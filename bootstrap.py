@@ -1,7 +1,7 @@
 import sublime
 
-from hyperhelpcore.bootstrapper import display_topic
-from hyperhelpcore.common import hh_setting
+from .lib.bootstrapper import display_topic
+from .lib.common import hh_setting
 
 
 ### ---------------------------------------------------------------------------

@@ -3,15 +3,15 @@ import sublime_plugin
 
 from collections import MutableSet
 
-from hyperhelpcore.common import log
-from hyperhelpcore.core import help_index_list, lookup_help_topic
-from hyperhelpcore.core import is_topic_file, is_topic_file_valid
-from hyperhelpcore.core import is_topic_url
-from hyperhelpcore.view import find_help_view
-from hyperhelpcore.help import _get_link_topic
+from .lib.common import log
+from .lib.core import help_index_list, lookup_help_topic
+from .lib.core import is_topic_file, is_topic_file_valid
+from .lib.core import is_topic_url
+from .lib.view import find_help_view
+from .lib.help import _get_link_topic
 
-from hyperhelpcore.core import load_indexes_from_packages
-from hyperhelpcore.core import unload_help_indexes_from_packges
+from .lib.core import load_indexes_from_packages
+from .lib.core import unload_help_indexes_from_packges
 
 
 ###----------------------------------------------------------------------------

@@ -3,7 +3,7 @@ import sublime_plugin
 
 import textwrap
 
-from hyperhelpcore.bootstrapper import log, BootstrapThread
+from .lib.bootstrapper import log, BootstrapThread
 
 
 
