@@ -393,10 +393,10 @@
             { "topic": "SnAPI" }
         ],
 
-        "https://github.com/STealthy-and-haSTy/hyperhelpcore": [
-            "hyperhelpcore: The HyperHelp core Dependency",
+        "https://github.com/STealthy-and-haSTy/HyperHelp": [
+            "HyperHelp: The HyperHelp core Dependency",
 
-            { "topic": "hyperhelpcore" }
+            { "topic": "hyperhelp" }
         ],
 
 

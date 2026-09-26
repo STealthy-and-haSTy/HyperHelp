@@ -1,17 +1,17 @@
 import sublime
 import sublime_plugin
 
-from collections import MutableSet
+from collections.abc import MutableSet
 
-from hyperhelpcore.common import log
-from hyperhelpcore.core import help_index_list, lookup_help_topic
-from hyperhelpcore.core import is_topic_file, is_topic_file_valid
-from hyperhelpcore.core import is_topic_url
-from hyperhelpcore.view import find_help_view
-from hyperhelpcore.help import _get_link_topic
+from .helpcore.common import log
+from .helpcore.core import help_index_list, lookup_help_topic
+from .helpcore.core import is_topic_file, is_topic_file_valid
+from .helpcore.core import is_topic_url
+from .helpcore.view import find_help_view
+from .helpcore.help import _get_link_topic
 
-from hyperhelpcore.core import load_indexes_from_packages
-from hyperhelpcore.core import unload_help_indexes_from_packges
+from .helpcore.core import load_indexes_from_packages
+from .helpcore.core import unload_help_indexes_from_packges
 
 
 ###----------------------------------------------------------------------------

@@ -31,5 +31,5 @@ assignees: OdatNurd
 [The environment you experienced this bug in.]
 
 - Sublime Text build: [3176]
-- hyperhelp version: v[0.0.1]
+- HyperHelp version: v[0.0.1]
 - Operating System: [Windows/MacOS/Linux]

@@ -1,9 +1,9 @@
 import sublime
 import sublime_plugin
 
-from hyperhelpcore.common import log
-from hyperhelpcore.common import current_help_package, current_help_file
-from hyperhelpcore.view import find_help_view
+from .helpcore.common import log
+from .helpcore.common import current_help_package, current_help_file
+from .helpcore.view import find_help_view
 
 
 ###----------------------------------------------------------------------------

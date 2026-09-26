@@ -1,4 +1,4 @@
-%hyperhelp title="HyperHelp API" date="2019-03-23"
+%hyperhelp title="HyperHelp API" date="2026-09-25"
 
 
 # API Overview
@@ -8,7 +8,6 @@ HyperHelp provides several |commands|, |key contexts| and an api that allow you
 to customize the help experience for yourself or for users of your package by
 creating your own custom key bindings, menu entries or plugins.
 
-Since HyperHelp (more specifically |hyperhelpcore|, which provides the API) is
-still under active development and subject to change without notice, the API is
-not yet documented.
+Since HyperHelp is still under active development and subject to change
+without notice, the API is not yet documented.
 

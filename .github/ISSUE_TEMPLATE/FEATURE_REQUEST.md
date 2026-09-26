@@ -13,7 +13,7 @@ assignees: OdatNurd
 
 ### Expected Behaviour
 
-[How would this feature be used in OverrideAudit?]
+[How would this feature be used in HyperHelp?]
 
 ### Extra information
 

@@ -3,12 +3,12 @@ import sublime_plugin
 
 import time
 
-from hyperhelpcore.core import parse_help_header, parse_anchor_body, parse_link_body
-from hyperhelpcore.core import help_index_list, lookup_help_topic
-from hyperhelpcore.core import is_topic_file, is_topic_file_valid
-from hyperhelpcore.help import _get_link_topic
-from hyperhelpcore.common import hh_setting
-from hyperhelpcore.common import current_help_package, current_help_file
+from .helpcore.core import parse_help_header, parse_anchor_body, parse_link_body
+from .helpcore.core import help_index_list, lookup_help_topic
+from .helpcore.core import is_topic_file, is_topic_file_valid
+from .helpcore.help import _get_link_topic
+from .helpcore.common import hh_setting
+from .helpcore.common import current_help_package, current_help_file
 
 
 ###----------------------------------------------------------------------------

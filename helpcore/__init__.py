@@ -1,9 +1,7 @@
 ### ---------------------------------------------------------------------------
 
 
-from .startup import initialize
-
-__version_tuple = (0, 0, 8)
+__version_tuple = (0, 0, 9)
 __version__ = ".".join([str(num) for num in __version_tuple])
 
 
@@ -15,7 +13,6 @@ __all__ = [
     "core",
     "data",
     "help",
-    "initialize",
     "version"
     "view",
 ]

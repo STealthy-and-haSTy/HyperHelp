@@ -1,20 +1,16 @@
-HyperHelp and hyperhelpcore
-============================
+HyperHelp
+=========
 
-hyperhelpcore is a dependency package for Sublime Text 3 that allows package
-authors to provide context sensitive, hyperlinked help for their packages that
-is displayable directly from within Sublime Text itself.
+`HyperHelp` is a package for Sublime Text that allows package authors to
+provide context sensitive, hyperlinked help for their packages that is
+displayable directly from within Sublime Text itself.
 
-At first startup, hyperhelpcore will generate a HyperHelp package in the
-InstalledPackages folder to expose the help functionality, and ensure that it
-is always up to date.
-
-Some packages using hyperhelpcore:
+Some packages using `HyperHelp`:
 
   * [SnAPI](https://github.com/STealthy-and-haSTy/SnAPI) - View the
     documentation for Sublime Text directly within Sublime
   * [HyperHelpAuthor](https://github.com/STealthy-and-haSTy/HyperHelpAuthor) -
-    Simple authoring tools for hyperhelpcore
+    Simple authoring tools for `HyperHelp`
 
 
 -------------------------------------------------------------------------------
@@ -30,7 +26,7 @@ change without notice.
 
 ## License ##
 
-Copyright 2017-2019 Terence Martin
+Copyright 2026 Terence Martin
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in

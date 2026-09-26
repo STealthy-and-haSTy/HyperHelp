@@ -4,18 +4,16 @@ import sublime_plugin
 import os
 import textwrap
 
-from hyperhelpcore.common import log, hh_setting, hh_update_setting, help_package_prompt
-from hyperhelpcore.common import current_help_file, current_help_package
-from hyperhelpcore.view import find_help_view
-from hyperhelpcore.core import help_index_list, lookup_help_topic
-from hyperhelpcore.core import show_help_topic, navigate_help_history, jump_help_history
-from hyperhelpcore.core import clear_help_history
-from hyperhelpcore.core import parse_anchor_body
-from hyperhelpcore.help import HistoryData, _get_link_topic
+from .helpcore.common import log, hh_setting, hh_update_setting, help_package_prompt
+from .helpcore.common import current_help_file, current_help_package
+from .helpcore.view import find_help_view
+from .helpcore.core import help_index_list, lookup_help_topic
+from .helpcore.core import show_help_topic, navigate_help_history, jump_help_history
+from .helpcore.core import clear_help_history
+from .helpcore.core import parse_anchor_body
+from .helpcore.help import HistoryData, _get_link_topic
 
-
-from .bootstrap import __version__ as local_version
-from hyperhelpcore import __version__ as sys_version
+from .helpcore import __version__ as sys_version
 
 
 ###----------------------------------------------------------------------------
@@ -576,13 +574,12 @@ class HyperHelpAboutCommand(sublime_plugin.ApplicationCommand):
         msg = textwrap.dedent("""
             About HyperHelp
 
-            HyperHelp Version: {local}
-            hyperhelpcore Version: {sys}
+            HyperHelp Version: {sys}
 
             HyperHelp is a text based, hyper linked help system for
-            Sublime Text 3 that allows packages to display their
-            help directly within Sublime Text.
-        """).format(local=local_version, sys=sys_version).strip()
+            Sublime Text that allows packages to display their
+            help directly within Sublime.
+        """).format(sys=sys_version).strip()
         log(msg, dialog=True)
 
 

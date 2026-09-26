@@ -1,4 +1,4 @@
-%hyperhelp title="Help Examples" date="2019-03-25"
+%hyperhelp title="Help Examples" date="2026-09-25"
 
 
 # Example hyperhelp.json
@@ -11,7 +11,7 @@ named `Sample`, and that inside of that package, the help files (i.e.
 
 The topics in a single file are declared, along with captions and aliases. In
 addition some externals are also defined to open the `exec.py` file in the
-default package and the home page for `hyperhelpcore` itself.
+default package and the home page for `HyperHelp` itself.
 
 The `help_contents` provides a simple hierarchical table of contents that lets
 you jump to the top level of the file and also sections. This also demonstrates
@@ -64,16 +64,6 @@ overriding the captions for some items.
                 "topic": "exec.py",
             },
         ],
-
-        "https://github.com/STealthy-and-haSTy/hyperhelpcore": [
-            "The HyperHelp core dependency",
-
-            {
-                "topic": "hyperhelpcore",
-                "caption": "Core Dependency"
-            },
-        ]
-
     },
 
     "help_contents": [
@@ -142,6 +132,5 @@ This is the third section. Apart from being here to show that three levels of
 section header are possible, it also shows that you can link to a |hidden
 anchor| the same as a regular one.
 
-In addition, you can also open the |exec.py| plugin by following this link or
-view the code for |hyperhelpcore|, the dependency that powers HyperHelp.
+In addition, you can also open the |exec.py| plugin by following this link.
 ```
