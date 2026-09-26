@@ -4,7 +4,7 @@ import copy
 import socket
 from datetime import datetime
 from decimal import Decimal
-from collections import Mapping, Container
+from collections.abc import Mapping, Container
 
 if sys.version_info[0] == 3:
     _str_type = str
