@@ -1,7 +1,6 @@
 import sublime
 
-from .validictory import validate
-from .validictory import SchemaError, ValidationError
+from .voluptuous import Schema, Required, Optional, Any, Invalid, MultipleInvalid
 
 from .common import log
 
@@ -9,117 +8,97 @@ from .common import log
 ###----------------------------------------------------------------------------
 
 
-# The schema to validate that a help file entry in the "help_files" key of the
-# help index is properly formattted.
-_help_file_schema = {
-    "type": "object",
-    "required": True,
+# The schema to validate that a topic dictionary is properly formatted.
+_topic_schema = Schema({
+    Required("topic"): str,
+    Optional("caption"): str,
 
-    # Any key is allowed, but all must have values which are arrays. The first
-    # item in the array must be a string and the remainder must be topic
-    # dictionaries.
-    "additionalProperties": {
-        "type": "array",
-        "items": [ { "type": "string", "required": True } ],
+    # Aliases must be an array of strings
+    Optional("aliases"): [str]
+})
 
-        "additionalItems": {
-            "type": "object",
-            "properties": {
-                "topic":   { "type": "string", "required": True  },
-                "caption": { "type": "string", "required": False },
-                "aliases": {
-                    "type": "array",
-                    "items": { "type": "string", "required": True },
-                    "required": False
-                }
-            },
-            "additionalProperties": False
-        }
-    }
-}
+def _validate_hybrid_array(v):
+    """
+    Custom validator for the "Hybrid Array" used in help_files and externals.
 
-# The schema to validate that the help table of contents in the "help_contents"
-# key of the help index is properly formattted.
-#
-# NOTE: This recursively references itself in the children element. See the
-# following line of code.
-_help_contents_schema = {
-    "type": "array",
-    "required": False,
+    The array must not be empty. The first item in the array must be a string
+    (typically a file path or URL), and the remainder must be topic
+    dictionaries.
+    """
+    if not isinstance(v, list):
+        raise Invalid("expected a list")
+    if len(v) == 0:
+        raise Invalid("list must not be empty")
 
-    # Items must be topic dictionaries or strings. Topic dictionaries require
-    # a topic key but may also contain a caption key and a children key which
-    # is an array that is recursively identical to this one.
-    #
-    # Values that are strings are expanded to be topic dictionaries with no
-    # children and an inherited caption.
-    "items": {
-        "type": [
-            {"type": "string", "required": True },
-            {
-                "type": "object",
-                "required": True,
-                "properties": {
-                    "topic":   { "type": "string", "required": True },
-                    "caption": { "type": "string", "required": False },
+    # The first item MUST be a string
+    if not isinstance(v[0], str):
+        raise Invalid("first element must be a string", path=[0])
 
-                    # This is recursive; see below
-                    "children": "_help_contents_schema"
-                },
-                "additionalProperties": False
-            }
-        ]
-    }
-}
+    # Validate the remainder of the array elements as topic dictionaries and
+    # preserve the exact path to any failure so the index is reported.
+    for i in range(1, len(v)):
+        try:
+            _topic_schema(v[i])
+        except MultipleInvalid as e:
+            # prepend the array index to the error path so it reports
+            # correctly.
+            for error in e.errors:
+                error.prepend([i])
+            raise e
+        except Invalid as e:
+            e.prepend([i])
+            raise e
 
-# The second type of item is a dictionary with a property that has the same
-# format as the top level key.
-_help_contents_schema["items"]["type"][1]["properties"]["children"] = _help_contents_schema
+    return v
 
-# The schema to validate that the list of external resources in the "externals"
-# key of the help index is properly formatted.
-_externals_schema = {
-    "type": "object",
-    "required": False,
+def _validate_help_contents(v):
+    """
+    Recursive validator for the help table of contents in the "help_contents"
+    key of the help index.
 
-    # Any key is allowed, but all must have values which are arrays. The first
-    # item in the array must be a string and the remainder must be topic
-    # dictionaries.
-    "additionalProperties": {
-        "type": "array",
-        "items": [ { "type": "string", "required": True } ],
+    Items must be topic dictionaries or strings. Topic dictionaries require a
+    topic key but may also contain a caption key and a children key which is an
+    array that is recursively identical to this one.
 
-        "additionalItems": {
-            "type": "object",
-            "properties": {
-                "topic":   { "type": "string", "required": True  },
-                "caption": { "type": "string", "required": False },
-                "aliases": {
-                    "type": "array",
-                    "items": { "type": "string", "required": True },
-                    "required": False
-                }
-            },
-            "additionalProperties": False
-        }
-    }
-}
+    Values that are strings are expanded at runtime to be topic dictionaries
+    with no children and an inherited caption.
+    """
+    if not isinstance(v, list):
+        raise Invalid("expected a list")
+
+    node = Any(
+        str,
+        Schema({
+            Required("topic"): str,
+            Optional("caption"): str,
+
+            # This is recursive; it points back to this exact function
+            Optional("children"): _validate_help_contents
+        })
+    )
+
+    # Schema([node]) automatically handles validating the list and tracking
+    # index paths for error reporting.
+    return Schema([node])(v)
 
 # The overall schema used to validate a hyperhelp index file.
-_index_schema = {
-    "type": "object",
-    "properties": {
-        "package":         { "type": "string", "required": True },
-        "description":     { "type": "string", "required": False },
-        "doc_root":        { "type": "string", "required": False },
-        "default_caption": { "type": "string", "required": False },
+_index_schema = Schema({
+    Required("package"): str,
+    Optional("description"): str,
+    Optional("doc_root"): str,
+    Optional("default_caption"): str,
 
-        "help_files":    _help_file_schema,
-        "help_contents": _help_contents_schema,
-        "externals":     _externals_schema
-    },
-    "additionalProperties": False
-}
+    # Any string key is allowed, but all must have values which are Hybrid
+    # Arrays (first item string, remainder topic dicts).
+    Required("help_files"): Schema({str: _validate_hybrid_array}),
+
+    # The table of contents structure is optional
+    Optional("help_contents"): _validate_help_contents,
+
+    # Externals behave exactly like help_files structurally
+    Optional("externals"): Schema({str: _validate_hybrid_array})
+})
+
 
 
 ###----------------------------------------------------------------------------
@@ -143,22 +122,17 @@ def validate_index(content, index_res):
         return validate_fail("Invalid JSON detected; unable to decode")
 
     try:
-        validate(raw_dict, _index_schema)
+        _index_schema(raw_dict)
         return raw_dict
 
-    # The schema provided is itself broken.
-    except SchemaError as error:
-        return validate_fail("Invalid schema detected: %s", error)
+    except MultipleInvalid as error:
+        # Voluptuous aggregates errors. We can grab the first one or loop them.
+        # path is a list of keys/indexes leading to the exact failure
+        path = "".join(f"[{repr(p)}]" for p in error.path)
+        return validate_fail("at %s: %s", path, error.msg)
 
-    # One of the fields failed to validate. This generates extremely messy
-    # output, but this can be fixed later.
-    except ValidationError as error:
-        return validate_fail("in %s: %s", error.fieldname, error)
-
-    # Seems like validictory has a bug in which if you tell it to verify an
-    # array has contents but the array is empty, it blows up. This can happen
-    # if the array that provides the contents of a help file is empty, for
-    # example.
+    # Catch any underlying structural execution errors (e.g., if a custom
+    # function like _validate_hybrid_array explodes due to unexpected types)
     except Exception as error:
         return validate_fail("%s", error)
 
