@@ -155,7 +155,7 @@ def _reload_help_file(help_list, help_view):
         settings.set("_hh_file", "")
         if _display_help_file(pkg_info, file) is None:
             settings.set("_hh_file", file)
-            return false
+            return False
 
         return True
 

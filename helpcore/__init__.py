@@ -13,7 +13,7 @@ __all__ = [
     "core",
     "data",
     "help",
-    "version"
+    "version",
     "view",
 ]
 
