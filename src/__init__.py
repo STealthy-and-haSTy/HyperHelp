@@ -11,10 +11,12 @@ __all__ = [
     # common
     "common",
 
-    # commands
+    # handlers
     "BookmarkIdxInputHandler",
     "BookmarkTypeInputHandler",
     "BookmarkNameInputHandler",
+
+    # commands
     "HyperhelpFocusCommand",
     "HyperhelpTopicCommand",
     "HyperhelpOpenBookmarkCommand",
