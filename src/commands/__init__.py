@@ -1,9 +1,10 @@
 from ...help import reload
 
-reload("src.commands", ["commands", "internalcmd"])
+reload("src.commands", ["commands"])
+reload("src.commands.internal")
 
 from .commands import *
-from .internalcmd import *
+from .internal import *
 
 __all__ = [
     # commands
