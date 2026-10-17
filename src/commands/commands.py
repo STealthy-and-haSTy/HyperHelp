@@ -4,16 +4,16 @@ import sublime_plugin
 import os
 import textwrap
 
-from .helpcore.common import log, hh_setting, hh_update_setting, help_package_prompt
-from .helpcore.common import current_help_file, current_help_package
-from .helpcore.view import find_help_view
-from .helpcore.core import help_index_list, lookup_help_topic
-from .helpcore.core import show_help_topic, navigate_help_history, jump_help_history
-from .helpcore.core import clear_help_history
-from .helpcore.core import parse_anchor_body
-from .helpcore.help import HistoryData, _get_link_topic
+from ...helpcore.common import log, hh_setting, hh_update_setting, help_package_prompt
+from ...helpcore.common import current_help_file, current_help_package
+from ...helpcore.view import find_help_view
+from ...helpcore.core import help_index_list, lookup_help_topic
+from ...helpcore.core import show_help_topic, navigate_help_history, jump_help_history
+from ...helpcore.core import clear_help_history
+from ...helpcore.core import parse_anchor_body
+from ...helpcore.help import HistoryData, _get_link_topic
 
-from .helpcore import __version__ as sys_version
+from ...helpcore import __version__ as sys_version
 
 
 ###----------------------------------------------------------------------------

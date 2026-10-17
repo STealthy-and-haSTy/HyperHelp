@@ -1,6 +1,6 @@
 import sublime
 
-from .helpcore.common import hh_setting
+from ..helpcore.common import hh_setting, log
 
 
 ### ---------------------------------------------------------------------------
@@ -22,13 +22,19 @@ def display_topic(package, topic):
 ### ---------------------------------------------------------------------------
 
 
-def plugin_loaded():
+def post_install_update_check():
     """
-    On plugin load, see if we should display an initial help topic or not.
-    This relies on a window setting that the bootstrapper applies to whatever
-    the current window is, and will display an appropriate topic based on what
-    the bootstrap did.
+    Check all windows to see if any of them are declaring that there should be
+    an initial topic shown; if so, navigate to it after removing the setting.
+
+    This is invoked on plugin load so that the event system for package control
+    can indicate that the help package should display either its initial help
+    page, or a changelog.
+
+    As of right now, this integration is not yet complete, so this is still a
+    TODO on that end; see [HH-3].
     """
+    log('TODO: performing the post install update check')
     topic = None
     for window in sublime.windows():
         settings = window.settings()
