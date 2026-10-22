@@ -11,6 +11,14 @@ from ...helpcore.help import HistoryData
 ###----------------------------------------------------------------------------
 
 
+# The Kind information that is applied to the history entry that is currently
+# being viewed.
+KIND_INFO_CURRENT = (sublime.KindId.COLOR_GREENISH, ">", "Currently being viewed")
+
+
+###----------------------------------------------------------------------------
+
+
 class HyperhelpHistoryCommand(sublime_plugin.WindowCommand):
     """
     This command is for working with history in HyperHelp help views in a
@@ -95,15 +103,15 @@ class HyperhelpHistoryCommand(sublime_plugin.WindowCommand):
             pkg_info = help_index_list().get(entry.package)
             if pkg_info is not None and entry.file in pkg_info.help_files:
                 title = pkg_info.help_files[entry.file]
-                description = "%s in %s" % (entry.file, pkg_info.description)
+                description = pkg_info.description
             else:
                 title = "%s in %s" % (entry.file, entry.package)
                 description = ""
 
+            history_item = sublime.QuickPanelItem(title, description, annotation=entry.file)
             if idx == h_pos:
-                title = title + "\t\t[currently viewing]"
-
-            items.append([title, description])
+                history_item.kind = KIND_INFO_CURRENT
+            items.append(history_item)
 
         self.window.show_quick_panel(items,
                                      lambda idx: self.jump_to_entry(idx),
