@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
+
 import sublime
 
 import os
@@ -13,8 +17,8 @@ from .view import find_help_view
 from .help_index import _load_help_index, _scan_help_packages
 from .help import _resource_for_help
 from .help import _load_help_file, _display_help_file, _reload_help_file
-from .help import HistoryData, _update_help_history
-from .data import HeaderData
+from .help import _update_help_history
+from .data import HeaderData, HelpData, HelpTopic, HistoryData
 
 
 ###----------------------------------------------------------------------------
@@ -23,11 +27,13 @@ from .data import HeaderData
 _header_prefix_re = re.compile(r'^%hyperhelp(\b|$)')
 _header_keypair_re = re.compile(r'\b([a-z]+)\b="([^"]*)"')
 
+_help_index: Optional[Dict[str, HelpData]] = None
+
 
 ###----------------------------------------------------------------------------
 
 
-def load_help_index(index_resource):
+def load_help_index(index_resource: str) -> Optional[HelpData]:
     """
     Given an index resource that points to a hyperhelp.json file, load the help
     index and return back a normalized version. Returns None on error.
@@ -35,7 +41,7 @@ def load_help_index(index_resource):
     return _load_help_index(index_resource)
 
 
-def load_help_file(pkg_info, help_file):
+def load_help_file(pkg_info: HelpData, help_file: str) -> Optional[str]:
     """
     Load the contents of a help file contained in the provided help package.
     The help file should be relative to the document root of the package.
@@ -45,24 +51,27 @@ def load_help_file(pkg_info, help_file):
     return _load_help_file(pkg_info, help_file)
 
 
-def help_index_list(reload=False, package=None):
+def help_index_list(reload: bool = False,
+                    package: Optional[str] = None) -> Dict[str, HelpData]:
     """
     Obtain or reload the help index information for all packages. This demand
     loads the indexes on first access and can optionally reload all package
     indexes or only a single one, as desired.
     """
+    global _help_index
+
     initial_load = False
-    if not hasattr(help_index_list, "index"):
+    if _help_index is None:
         initial_load = True
-        help_index_list.index = _scan_help_packages()
+        _help_index = _scan_help_packages()
 
     if reload and not initial_load:
-        help_index_list.index = reload_help_index(help_index_list.index, package)
+        _help_index = reload_help_index(_help_index, package)
 
-    return help_index_list.index
+    return _help_index
 
 
-def load_indexes_from_packages(packages):
+def load_indexes_from_packages(packages: Union[str, List[str], None]) -> Optional[Dict[str, HelpData]]:
     """
     Given a physical package name or list of names, load all help indexes that
     appear in that package and add them to the list of known help indexes. This
@@ -70,12 +79,13 @@ def load_indexes_from_packages(packages):
     The new list of known help indexes is returned.
     """
     if not packages:
-        return log("Cannot demand load package indexes; no packages provided")
+        log("Cannot demand load package indexes; no packages provided")
+        return None
 
     return _scan_help_packages(help_index_list(), packages)
 
 
-def unload_help_indexes_from_packges(packages):
+def unload_help_indexes_from_packges(packages: Union[str, List[str], None]) -> Optional[Dict[str, HelpData]]:
     """
     Given a physical package name or list of names, unload any help indexes
     that are contained within that package. This implicitlly loads all help
@@ -84,7 +94,8 @@ def unload_help_indexes_from_packges(packages):
     is returned.
     """
     if not packages:
-        return log("Cannot demand unload package indexes; no packages provided")
+        log("Cannot demand unload package indexes; no packages provided")
+        return None
 
     if not isinstance(packages, list):
         packages = [packages]
@@ -99,7 +110,8 @@ def unload_help_indexes_from_packges(packages):
     return indexes
 
 
-def reload_help_index(help_list, package):
+def reload_help_index(help_list: Dict[str, HelpData],
+                      package: Optional[str]) -> Dict[str, HelpData]:
     """
     Reload the help index for the provided package from within the given help
     list, updating the help list to record the new data.
@@ -134,7 +146,7 @@ def reload_help_index(help_list, package):
     return help_list
 
 
-def help_file_resource(pkg_info, help_file):
+def help_file_resource(pkg_info: HelpData, help_file: str) -> str:
     """
     Get the resource name that references the help file in the given help
     package. The help file should be relative to the document root of the
@@ -143,7 +155,8 @@ def help_file_resource(pkg_info, help_file):
     return _resource_for_help(pkg_info, help_file)
 
 
-def display_help_file(pkg_info, help_file):
+def display_help_file(pkg_info: HelpData,
+                      help_file: str) -> Optional[sublime.View]:
     """
     Load and display the help file contained in the provided help package. The
     heop file should be relative to the document root of the package.
@@ -159,7 +172,8 @@ def display_help_file(pkg_info, help_file):
     return _display_help_file(pkg_info, help_file)
 
 
-def reload_help_file(help_list, help_view):
+def reload_help_file(help_list: Dict[str, HelpData],
+                     help_view: Optional[sublime.View]) -> bool:
     """
     Reload the help file currently being displayed in the given view to pick
     up changes made since it was displayed. The information on the package and
@@ -170,7 +184,8 @@ def reload_help_file(help_list, help_view):
     return _reload_help_file(help_list, help_view)
 
 
-def lookup_help_topic(pkg_info, topic):
+def lookup_help_topic(pkg_info: Union[HelpData, str, None],
+                      topic: str) -> Optional[HelpTopic]:
     """
     Given a help data tuple or the name of a package, look up the topic and
     return the topic structure if needed.
@@ -191,7 +206,7 @@ def lookup_help_topic(pkg_info, topic):
     return None
 
 
-def is_topic_normal(pkg_info, topic_dict):
+def is_topic_normal(pkg_info: HelpData, topic_dict: HelpTopic) -> bool:
     """
     Given a topic dictionary such as returned by lookup_help_topic(), determine
     if the topic represents a "normal" topic or not.
@@ -200,7 +215,7 @@ def is_topic_normal(pkg_info, topic_dict):
             not is_topic_file(pkg_info, topic_dict))
 
 
-def is_topic_url(pkg_info, topic_dict):
+def is_topic_url(pkg_info: HelpData, topic_dict: HelpTopic) -> bool:
     """
     Given a topic dictionary such as returned by lookup_help_topic(), determine
     if the topic represents a topic that will open a URL or not.
@@ -208,7 +223,7 @@ def is_topic_url(pkg_info, topic_dict):
     return topic_dict["file"] in pkg_info.urls
 
 
-def is_topic_file(pkg_info, topic_dict):
+def is_topic_file(pkg_info: HelpData, topic_dict: HelpTopic) -> bool:
     """
     Given a topic dictionary such as returned by lookup_help_topic(), determine
     if the topic represents a topic that will open a URL or not.
@@ -216,7 +231,8 @@ def is_topic_file(pkg_info, topic_dict):
     return topic_dict["file"] in pkg_info.package_files
 
 
-def is_topic_url_valid(pkg_info, topic_dict):
+def is_topic_url_valid(pkg_info: HelpData,
+                       topic_dict: HelpTopic) -> Optional[bool]:
     """
     Given a topic dictionary such as returned by lookup_help_topic() that
     represents a URL, return an indication as to whether the URL is valid or
@@ -227,14 +243,15 @@ def is_topic_url_valid(pkg_info, topic_dict):
     if is_topic_url(pkg_info, topic_dict):
         try:
             result = urlparse(topic_dict["file"])
-            return result.scheme and result.netloc
+            return bool(result.scheme and result.netloc)
         except Exception:
             return False
 
     return None
 
 
-def is_topic_file_valid(pkg_info, topic_dict):
+def is_topic_file_valid(pkg_info: HelpData,
+                        topic_dict: HelpTopic) -> Optional[bool]:
     """
     Given a topic dictionary such as returned by lookup_help_topic() that
     represents a package file, return an indication as to whether that file
@@ -253,7 +270,7 @@ def is_topic_file_valid(pkg_info, topic_dict):
     return None
 
 
-def show_help_topic(package, topic, history):
+def show_help_topic(package: str, topic: str, history: bool) -> Optional[str]:
     """
     Attempt to display the help for the provided topic in the given package
     (both strings) as appropriate. This will transparently create a new help
@@ -292,17 +309,18 @@ def show_help_topic(package, topic, history):
     if history:
         _update_help_history(find_help_view())
 
-    existing_view = True if find_help_view() is not None else False
+    existing_view = find_help_view() is not None
     help_view = display_help_file(pkg_info, help_file)
     if help_view is None:
         log("Unable to load help file '%s'", help_file, status=True)
         return None
 
     found = False
-    anchor_dict = help_view.settings().get("_hh_nav", [])
+    anchor_dict = cast(Dict[str, int], help_view.settings().get("_hh_nav", {}))
     idx = anchor_dict.get(topic_data["topic"], -1)
-    if idx >= 0:
-        anchor_pos = help_view.get_regions("_hh_anchors")[idx]
+    anchors = help_view.get_regions("_hh_anchors")
+    if 0 <= idx < len(anchors):
+        anchor_pos = anchors[idx]
         help_view.run_command("hyperhelp_focus",
             {
                 "position": [anchor_pos.b, anchor_pos.a],
@@ -322,7 +340,7 @@ def show_help_topic(package, topic, history):
     return "file"
 
 
-def navigate_help_history(help_view, prev):
+def navigate_help_history(help_view: Optional[sublime.View], prev: bool) -> bool:
     """
     Navigate through the help history for the provided help view, either going
     forward or backward as appropriate. This will update the current history
@@ -336,8 +354,8 @@ def navigate_help_history(help_view, prev):
     if help_view is None:
         return False
 
-    hist_pos = help_view.settings().get("_hh_hist_pos")
-    hist_info = help_view.settings().get("_hh_hist")
+    hist_pos = cast(int, help_view.settings().get("_hh_hist_pos"))
+    hist_info = cast(List[Any], help_view.settings().get("_hh_hist"))
 
     if (prev and hist_pos == 0) or (not prev and hist_pos == len(hist_info) - 1):
         log("Cannot navigate %s through history; already at the end",
@@ -352,6 +370,9 @@ def navigate_help_history(help_view, prev):
 
     # Navigate to the destination file in the history; need to manually set
     # the cursor position
+    if entry.package is None or entry.file is None:
+        return False
+
     if show_help_topic(entry.package, entry.file, history=False) is not None:
         help_view.sel().clear()
         help_view.sel().add(sublime.Region(entry.caret[0], entry.caret[1]))
@@ -363,7 +384,7 @@ def navigate_help_history(help_view, prev):
     return False
 
 
-def jump_help_history(help_view, new_pos):
+def jump_help_history(help_view: Optional[sublime.View], new_pos: int) -> bool:
     """
     Jump to a specific point in the help history for the provided help view.
 
@@ -376,13 +397,15 @@ def jump_help_history(help_view, new_pos):
     if help_view is None:
         return False
 
-    hist_pos = help_view.settings().get("_hh_hist_pos")
-    hist_info = help_view.settings().get("_hh_hist")
+    hist_pos = cast(int, help_view.settings().get("_hh_hist_pos"))
+    hist_info = cast(List[Any], help_view.settings().get("_hh_hist"))
 
     if new_pos < 0 or new_pos >= len(hist_info) or new_pos == hist_pos:
         return False
 
     entry = HistoryData._make(hist_info[new_pos])
+    if entry.package is None or entry.file is None:
+        return False
 
     # Update the current history entry's viewport and caret location
     _update_help_history(help_view)
@@ -397,8 +420,10 @@ def jump_help_history(help_view, new_pos):
         help_view.settings().set("_hh_hist_pos", new_pos)
         return True
 
+    return False
 
-def clear_help_history(help_view):
+
+def clear_help_history(help_view: Optional[sublime.View]) -> bool:
     """
     Clear the help history for the provided help file, leaving only the current
     entry in the list as the sole history entry.
@@ -411,8 +436,8 @@ def clear_help_history(help_view):
     if help_view is None:
         return False
 
-    hist_pos = help_view.settings().get("_hh_hist_pos")
-    hist_info = help_view.settings().get("_hh_hist")
+    hist_pos = cast(int, help_view.settings().get("_hh_hist_pos"))
+    hist_info = cast(List[Any], help_view.settings().get("_hh_hist"))
 
     entry = HistoryData._make(hist_info[hist_pos])
 
@@ -422,7 +447,8 @@ def clear_help_history(help_view):
     return True
 
 
-def parse_help_header(help_file, header_line):
+def parse_help_header(help_file: str,
+                      header_line: str) -> Optional[HeaderData]:
     """
     Given the first line of a help file, check to see if it looks like a help
     source file, and if so parse the header and return the parsed values back.
@@ -439,8 +465,8 @@ def parse_help_header(help_file, header_line):
         elif match[0] == "date":
             try:
                 date = time.mktime(time.strptime(match[1], "%Y-%m-%d"))
-            except Exception as e:
-                print(e)
+            except Exception as error:
+                print(error)
                 date = 0.0
                 log("Ignoring invalid file date '%s' in '%s'",
                     match[1], help_file)
@@ -451,7 +477,7 @@ def parse_help_header(help_file, header_line):
     return HeaderData(help_file, title, date)
 
 
-def parse_anchor_body(anchor_body):
+def parse_anchor_body(anchor_body: str) -> Tuple[str, str]:
     """
     Given the body of an anchor, parse it to determine what topic ID it's
     anchored to and what text the anchor uses in the source help file.
@@ -471,7 +497,7 @@ def parse_anchor_body(anchor_body):
     return (id_val.casefold().rstrip(), anchor_body.strip())
 
 
-def parse_link_body(link_body):
+def parse_link_body(link_body: str) -> Tuple[Optional[str], Optional[str], Optional[str]]:
     """
     Given the body of a link, parse it to determine what package and topic ID
     the link will navigate to as well as what the visual link text should be.
@@ -485,15 +511,16 @@ def parse_link_body(link_body):
         return None, link_body.rstrip(), link_body.rstrip()
 
     if len(parts) >= 3:
-        pkg = parts[0]
-        topic = parts[1]
-        text = ":".join(parts[2:])
+        pkg: Optional[str] = parts[0]
+        topic: Optional[str] = parts[1]
+        text: Optional[str] = ":".join(parts[2:])
     else:
         return (None, None, None)
 
     pkg = pkg or None
     topic = topic or text
-    return (pkg, topic.strip(), text.strip())
+    return (pkg, topic.strip() if topic is not None else None,
+            text.strip() if text is not None else None)
 
 
 ###----------------------------------------------------------------------------

@@ -1,15 +1,30 @@
+from __future__ import annotations
+
+from typing import Any, Callable, Dict, List, Optional, cast
+
 import sublime
 
 import os
 import codecs
 
+from .data import HelpData
 from .view import find_help_view
 
 
 ###----------------------------------------------------------------------------
 
 
-def log(message, *args, status=False, dialog=False):
+_hh_settings: Optional[sublime.Settings] = None
+_hh_setting_defaults: Dict[str, Any] = {
+    "hyperhelp_date_format": "%x",
+    "show_changelog": True,
+    "focus_links_at_top": True,
+    "bookmarks": []
+}
+
+
+def log(message: str, *args: object, status: bool = False,
+        dialog: bool = False) -> None:
     """
     Log the provided message to the console, optionally also sending it to the
     status bar and a dialog box.
@@ -23,7 +38,7 @@ def log(message, *args, status=False, dialog=False):
         sublime.message_dialog(message)
 
 
-def hh_syntax(base_file):
+def hh_syntax(base_file: str) -> Optional[str]:
     """
     Return the syntax file associated with the given base syntax file name.
     This can return None if the syntax is not known.
@@ -33,36 +48,38 @@ def hh_syntax(base_file):
         return syn_list[0]
 
     log("Unable to locate unique syntax '%s'", base_file)
+    return None
 
 
-def hh_setting(key):
+def hh_setting(key: str) -> Any:
     """
     Get a HyperHelp setting from a cached settings object.
     """
-    if not hasattr(hh_setting, "obj"):
-        hh_setting.obj = sublime.load_settings("HyperHelp.sublime-settings")
-        hh_setting.default = {
-            "hyperhelp_date_format": "%x",
-            "show_changelog": True,
-            "focus_links_at_top": True,
-            "bookmarks": []
-        }
+    global _hh_settings
 
-    default = hh_setting.default.get(key, None)
-    return hh_setting.obj.get(key, default)
+    if _hh_settings is None:
+        _hh_settings = sublime.load_settings("HyperHelp.sublime-settings")
+
+    default = _hh_setting_defaults.get(key, None)
+    return _hh_settings.get(key, default)
 
 
-def hh_update_setting(key, value, save=False):
+def hh_update_setting(key: str, value: Any, save: bool = False) -> None:
     """
     Set the value of a HyperHelp setting to the value provided. Optionally, the
     call can also persist the change to disk.
     """
-    hh_setting.obj.set(key, value)
+    global _hh_settings
+
+    if _hh_settings is None:
+        _hh_settings = sublime.load_settings("HyperHelp.sublime-settings")
+
+    _hh_settings.set(key, value)
     if save:
         sublime.save_settings("HyperHelp.sublime-settings")
 
 
-def load_resource(res_name):
+def load_resource(res_name: str) -> Optional[str]:
     """
     Attempt to load and decode the UTF-8 encoded string with normalized line
     endings, returning the string on success or None on error.
@@ -78,7 +95,8 @@ def load_resource(res_name):
         pass
 
     except UnicodeError:
-        return log("Unable to decode '%s'; resource is not UTF-8" % res_name)
+        log("Unable to decode '%s'; resource is not UTF-8", res_name)
+        return None
 
     try:
         spp = os.path.split(sublime.packages_path())[0]
@@ -88,13 +106,16 @@ def load_resource(res_name):
             return file.read().replace('\r\n', '\n').replace('\r', '\n')
 
     except OSError:
-        return log("Unable to load '%s'; resource not found" % res_name)
+        log("Unable to load '%s'; resource not found", res_name)
+        return None
 
     except UnicodeError:
-        return log("Unable to decode '%s'; resource is not UTF-8" % res_name)
+        log("Unable to decode '%s'; resource is not UTF-8", res_name)
+        return None
 
 
-def current_help_package(view=None, window=None):
+def current_help_package(view: Optional[sublime.View] = None,
+                         window: Optional[sublime.Window] = None) -> Optional[str]:
     """
     Obtain the package that contains the currently displayed help file or None
     if help is not visible.
@@ -103,10 +124,14 @@ def current_help_package(view=None, window=None):
     or the help view in the currently active window.
     """
     view = view or find_help_view(window)
-    return (view.settings().get("_hh_pkg") if view is not None else None)
+    if view is None:
+        return None
+
+    return cast(Optional[str], view.settings().get("_hh_pkg"))
 
 
-def current_help_file(view=None, window=None):
+def current_help_file(view: Optional[sublime.View] = None,
+                      window: Optional[sublime.Window] = None) -> Optional[str]:
     """
     Obtain the file that is currently being displayed in the help view or None
     if help is not visible.
@@ -115,30 +140,34 @@ def current_help_file(view=None, window=None):
     or the help view in the currently active window.
     """
     view = view or find_help_view(window)
-    return (view.settings().get("_hh_file") if view is not None else None)
+    if view is None:
+        return None
+
+    return cast(Optional[str], view.settings().get("_hh_file"))
 
 
-def help_package_prompt(help_list, on_select, on_cancel=None):
+def help_package_prompt(help_list: Dict[str, HelpData],
+                        on_select: Callable[[str], Any],
+                        on_cancel: Optional[Callable[[], Any]] = None) -> None:
     """
     Given a list of loaded help indexes, prompt the user to select one of the
     packages. on_select is invoked with the name of the selected package,
     while on_cancel is invoked if the user cancels the selection.
     """
     if not help_list:
-        return log("No packages with help are installed", status=True)
+        log("No packages with help are installed", status=True)
+        return
 
     pkg_list = sorted([key for key in help_list])
-    captions = [[help_list[key].package,
-                 help_list[key].description]
-        for key in pkg_list]
+    captions: List[List[str]] = [[help_list[key].package,
+                                  help_list[key].description]
+                                 for key in pkg_list]
 
-    def pick_package(index):
-        package = None if index < 0 else captions[index][0]
-
+    def pick_package(index: int) -> None:
         if index >= 0:
-            return on_select(package) if on_select is not None else None
-
-        return on_cancel() if on_cancel is not None else None
+            on_select(captions[index][0])
+        elif on_cancel is not None:
+            on_cancel()
 
     sublime.active_window().show_quick_panel(
         captions,

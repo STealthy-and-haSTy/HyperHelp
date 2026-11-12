@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import List, Union
+
 import sublime
 import sublime_plugin
 
@@ -19,7 +23,8 @@ class HyperhelpFocusCommand(sublime_plugin.TextCommand):
 
     Position may be a single integer or a region.
     """
-    def run(self, edit, position, at_top=False, at_center=False):
+    def run(self, edit: sublime.Edit, position: Union[int, List[int], sublime.Region],
+            at_top: bool = False, at_center: bool = False) -> None:
         if isinstance(position, int):
             position = sublime.Region(position)
         elif isinstance(position, list):

@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Dict
+
 import sublime
 import sublime_plugin
 
@@ -18,7 +22,7 @@ class HyperhelpInternalProcessAnchorsCommand(sublime_plugin.TextCommand):
     This results in regions and settings being applied to the view that allow
     the help core to navigate within the file.
     """
-    def run(self, edit):
+    def run(self, edit: sublime.Edit) -> None:
         v = self.view
         v.add_regions("_hh_anchors", v.find_by_selector("meta.anchor"), "",
                      flags=sublime.HIDDEN | sublime.PERSISTENT)
@@ -26,7 +30,7 @@ class HyperhelpInternalProcessAnchorsCommand(sublime_plugin.TextCommand):
         for pos in reversed(v.find_by_selector("punctuation.anchor.hidden")):
             v.erase(edit, pos)
 
-        hh_nav = {}
+        hh_nav: Dict[str, int] = {}
         regions = v.get_regions("_hh_anchors")
         for idx, region in enumerate(reversed(regions)):
             topic, text = parse_anchor_body(v.substr(region))
@@ -35,7 +39,7 @@ class HyperhelpInternalProcessAnchorsCommand(sublime_plugin.TextCommand):
 
         v.settings().set("_hh_nav", hh_nav)
 
-    def is_enabled(self):
+    def is_enabled(self) -> bool:
         return _can_post_process(self.view)
 
 

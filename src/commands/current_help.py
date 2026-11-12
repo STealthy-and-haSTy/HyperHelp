@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sublime  # noqa: F401
 import sublime_plugin
 
@@ -13,11 +15,11 @@ class HyperhelpCurrentHelpCommand(sublime_plugin.WindowCommand):
     This command does nothing, but it's description method tells you what
     help package is currently being browsed, if any.
     """
-    def is_enabled(self, **kwargs):
+    def is_enabled(self, **kwargs: sublime.Value) -> bool:
         return False
 
-    def description(self, no_help_fmt="No help currently visible",
-                          help_fmt="Viewing help for: '%s'"):
+    def description(self, no_help_fmt: str = "No help currently visible",
+                    help_fmt: str = "Viewing help for: '%s'") -> str:
         package = current_help_package(window=self.window)
         if package is None:
             return no_help_fmt

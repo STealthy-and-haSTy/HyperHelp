@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Optional, cast
+
 import sublime
 
 from ..helpcore.common import hh_setting, log
@@ -6,7 +10,7 @@ from ..helpcore.common import hh_setting, log
 ### ---------------------------------------------------------------------------
 
 
-def display_topic(package, topic):
+def display_topic(package: str, topic: str) -> None:
     """
     Invoke the appropriate command to display the given help topic. The topic
     is presumed to be from our own package. This uses a timeout because it used
@@ -22,7 +26,7 @@ def display_topic(package, topic):
 ### ---------------------------------------------------------------------------
 
 
-def post_install_update_check():
+def post_install_update_check() -> None:
     """
     Check all windows to see if any of them are declaring that there should be
     an initial topic shown; if so, navigate to it after removing the setting.
@@ -35,11 +39,11 @@ def post_install_update_check():
     TODO on that end; see [HH-3].
     """
     log('TODO: performing the post install update check')
-    topic = None
+    topic: Optional[str] = None
     for window in sublime.windows():
         settings = window.settings()
         if settings.has("hyperhelp.initial_topic"):
-            topic = topic or settings.get("hyperhelp.initial_topic")
+            topic = topic or cast(str, settings.get("hyperhelp.initial_topic"))
             settings.erase("hyperhelp.initial_topic")
 
     if topic is not None and hh_setting("show_changelog"):

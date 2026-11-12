@@ -1,16 +1,20 @@
+from __future__ import annotations
+
+from typing import Any, Dict, List, Optional, Union, cast
+
 import sublime
 import sublime_plugin  # noqa: F401
 
-from .view import find_help_view, update_help_view
 from .common import log, hh_syntax, current_help_file, current_help_package
 from .common import load_resource
-from .data import HistoryData
+from .data import HelpData, HistoryData, LinkInfo
+from .view import find_help_view, update_help_view
 
 
 ###----------------------------------------------------------------------------
 
 
-def _resource_for_help(pkg_info, help_file):
+def _resource_for_help(pkg_info: HelpData, help_file: str) -> str:
     """
     Get the resource name that references the help file in the given help
     package. The help file should be relative to the document root of the
@@ -19,7 +23,7 @@ def _resource_for_help(pkg_info, help_file):
     return "Packages/%s/%s" % (pkg_info.doc_root, help_file)
 
 
-def _load_help_file(pkg_info, help_file):
+def _load_help_file(pkg_info: HelpData, help_file: str) -> Optional[str]:
     """
     Load the contents of a help file contained in the provided help package.
     The help file should be relative to the document root of the package.
@@ -29,7 +33,8 @@ def _load_help_file(pkg_info, help_file):
     return load_resource(_resource_for_help(pkg_info, help_file))
 
 
-def _update_help_history(view, append=False, selection=None):
+def _update_help_history(view: Optional[sublime.View], append: bool = False,
+                         selection: Optional[sublime.Region] = None) -> None:
     """
     Update the help history for the provided view by either updating the
     contents of the current history entry or adding a new entry to the end of
@@ -47,8 +52,8 @@ def _update_help_history(view, append=False, selection=None):
     selection = view.sel()[0] if selection is None else selection
     settings = view.settings()
 
-    hist_pos = settings.get("_hh_hist_pos", 0)
-    hist_info = settings.get("_hh_hist", [])
+    hist_pos = cast(int, settings.get("_hh_hist_pos", 0))
+    hist_info = cast(List[Any], settings.get("_hh_hist", []))
 
     if append:
         # Truncate all history after this point; new timeline branches out.
@@ -73,7 +78,7 @@ def _update_help_history(view, append=False, selection=None):
     settings.set("_hh_hist", hist_info)
 
 
-def _enable_post_processing(help_view, enable):
+def _enable_post_processing(help_view: sublime.View, enable: bool) -> None:
     """
     Enable or disable post processing on the provided help view, which controls
     whether or not the file can be edited and whether various post-processing
@@ -83,7 +88,8 @@ def _enable_post_processing(help_view, enable):
     help_view.settings().set("_hh_post_processing", enable)
 
 
-def _display_help_file(pkg_info, help_file):
+def _display_help_file(pkg_info: HelpData,
+                       help_file: str) -> Optional[sublime.View]:
     """
     Load and display the help file contained in the provided help package. The
     help file should be relative to the document root of the package.
@@ -97,16 +103,19 @@ def _display_help_file(pkg_info, help_file):
     on success.
     """
     view = find_help_view()
-    window = view.window() if view is not None else sublime.active_window()
 
     if view is not None:
-        window.focus_view(view)
+        window = view.window()
+        if window is not None:
+            window.focus_view(view)
 
         current_pkg = current_help_package(view)
         current_file = current_help_file(view)
 
         if help_file == current_file and pkg_info.package == current_pkg:
             return view
+    else:
+        window = sublime.active_window()
 
     help_text = _load_help_file(pkg_info, help_file)
     if help_text is not None:
@@ -126,10 +135,12 @@ def _display_help_file(pkg_info, help_file):
 
         return view
 
-    return log("Unable to find help file '%s'", help_file, status=True)
+    log("Unable to find help file '%s'", help_file, status=True)
+    return None
 
 
-def _reload_help_file(help_list, help_view):
+def _reload_help_file(help_list: Dict[str, HelpData],
+                      help_view: Optional[sublime.View]) -> bool:
     """
     Reload the help file currently being displayed in the given view to pick
     up changes made since it was displayed. The information on the package and
@@ -143,6 +154,11 @@ def _reload_help_file(help_list, help_view):
 
     package = current_help_package(help_view)
     file = current_help_file(help_view)
+
+    if package is None:
+        log("Unable to reload the current help topic")
+        return False
+
     pkg_info = help_list.get(package, None)
 
     if pkg_info is not None and file is not None:
@@ -160,7 +176,8 @@ def _reload_help_file(help_list, help_view):
     return False
 
 
-def _get_link_topic(help_view, link_region):
+def _get_link_topic(help_view: sublime.View,
+                    link_region: Union[sublime.Region, int]) -> Optional[LinkInfo]:
     """
     Given a help view and information about a link, return back an object that
     provides the package and topic ID that the link references.
@@ -171,7 +188,7 @@ def _get_link_topic(help_view, link_region):
 
     None is returned when the information cannot be found.
     """
-    topics = help_view.settings().get("_hh_links")
+    topics = cast(List[LinkInfo], help_view.settings().get("_hh_links"))
 
     try:
         # If the incoming region is an index, our job is easy.

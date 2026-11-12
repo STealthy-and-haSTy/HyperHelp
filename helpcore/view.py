@@ -1,13 +1,21 @@
+from __future__ import annotations
+
+from typing import Optional
+
 import sublime
-
-
-_get_window = lambda wnd: wnd if wnd is not None else sublime.active_window()
 
 
 ###----------------------------------------------------------------------------
 
 
-def find_help_view(window=None):
+def _get_window(wnd: Optional[sublime.Window]) -> sublime.Window:
+    return wnd if wnd is not None else sublime.active_window()
+
+
+###----------------------------------------------------------------------------
+
+
+def find_help_view(window: Optional[sublime.Window] = None) -> Optional[sublime.View]:
     """
     Search for and return the help view in the provided window. Defaults to
     searching the current window if none is provided.
@@ -19,8 +27,11 @@ def find_help_view(window=None):
             if s.has("_hh_pkg") and s.has("_hh_file"):
                 return view
 
+    return None
 
-def new_help_view(syntax=None, window=None):
+
+def new_help_view(syntax: Optional[str] = None,
+                  window: Optional[sublime.Window] = None) -> sublime.View:
     """
     Create and return a new help view in the provided window. Defaults to the
     current window if none is specified.
@@ -35,8 +46,9 @@ def new_help_view(syntax=None, window=None):
     return hView
 
 
-def update_help_view(help_content, help_pkg, help_file,
-                     syntax=None, window=None):
+def update_help_view(help_content: str, help_pkg: str, help_file: str,
+                     syntax: Optional[str] = None,
+                     window: Optional[sublime.Window] = None) -> sublime.View:
     """
     Find or create the help view in the provided window and set it's contents
     to the help string provided. The help view will have it's internal state

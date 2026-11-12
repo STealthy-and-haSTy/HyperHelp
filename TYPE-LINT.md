@@ -20,7 +20,7 @@ to not allow the older plugin host, more changes could be made here.
 ## Command line
 
 Create the virtual environment, activate it, and install the required libraries.
-Once this is done, you an manually run lint checks:
+Once this is done, you an manually run lint and type checks:
 
 ```sh
 python3 -m venv .venv
@@ -28,7 +28,22 @@ source .venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 ruff check .
+pyright
 ```
+
+Note that pyright is a `node` application and thus requires `node` to be
+installed.
+
+Additionally, in order for the type checking to work, the virtual environment
+must exist in order for the Sublime Text API stubs to be found.
+
+
+## Type stubs
+
+We use the `4200.1` version of the `sublime-text-stubs` package in order to
+provide the type checker with the appropriate stubs for the 3.8 version of the
+Sublime Text API, which we target specifically to allow older versions to
+still use the help package.
 
 
 ## Sublime Text LSP

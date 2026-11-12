@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Dict, Optional, Tuple, cast
+
 import sublime
 import sublime_plugin
 
@@ -71,7 +75,7 @@ _topic_body = """
 ###----------------------------------------------------------------------------
 
 
-def _show_popup(view, point, popup):
+def _show_popup(view: sublime.View, point: int, popup: str) -> None:
     view.show_popup(
         _help_popup.format(body=popup),
         flags=sublime.HIDE_ON_MOUSE_MOVE_AWAY,
@@ -83,26 +87,33 @@ def _show_popup(view, point, popup):
 
 
 class HyperhelpEventListener(sublime_plugin.EventListener):
-    def on_text_command(self, view, command, args):
+    def on_text_command(self, view: sublime.View, command_name: str,
+                        args: sublime.CommandArgs) -> Optional[Tuple[str, sublime.CommandArgs]]:
         """
         Listen for the drag_select command with arguments that tell us that the
         user double clicked, see if they're double clicking on a link so we
         know if we should try to follow it or not.
         """
-        if (view.is_read_only() and command == "drag_select" and
+        if args is None:
+            return None
+
+        if (view.is_read_only() and command_name == "drag_select" and
                 args.get("by", None) == "words"):
-            event = args["event"]
+            event = cast(Dict[str, float], args["event"])
             point = view.window_to_text((event["x"], event["y"]))
 
             if view.match_selector(point, "text.hyperhelp meta.link"):
-                view.window().run_command("hyperhelp_navigate",
-                                         {"nav": "follow_link"})
-                return ("noop",None)
+                window = view.window()
+                if window is not None:
+                    window.run_command("hyperhelp_navigate",
+                                       {"nav": "follow_link"})
+                    return ("noop", {})
 
         return None
 
 
-    def on_hover(self, view, point, hover_zone):
+    def on_hover(self, view: sublime.View, point: int,
+                 hover_zone: sublime.HoverZone) -> None:
         """
         When the mouse hovers over a link in a help view, show a popup that
         tells you where the link goes or what file/URL it opens.
@@ -110,7 +121,8 @@ class HyperhelpEventListener(sublime_plugin.EventListener):
         if hover_zone != sublime.HOVER_TEXT:
             return
 
-        default_pkg = view.settings().get("_hh_pkg", None)
+        default_pkg = cast(Optional[str],
+                           view.settings().get("_hh_pkg", None))
         if default_pkg is None or not view.score_selector(point, "meta.link"):
             return
 
@@ -118,7 +130,7 @@ class HyperhelpEventListener(sublime_plugin.EventListener):
         if link_info is None:
             return
 
-        pkg = link_info.get("pkg", default_pkg)
+        pkg = link_info.get("pkg") or default_pkg
         topic = link_info.get("topic")
 
         # Report if we don't know the package. In this case we may know what
@@ -140,8 +152,8 @@ class HyperhelpEventListener(sublime_plugin.EventListener):
             popup = _missing_topic.format(pkg=pkg, topic=topic)
             return _show_popup(view, point, popup)
 
-        caption = topic_data.get("caption")
-        file = topic_data.get("file")
+        caption = topic_data.get("caption", "")
+        file = topic_data["file"]
         link = file
 
         # For links that open files, if that file does not exist as far as
@@ -163,7 +175,8 @@ class HyperhelpEventListener(sublime_plugin.EventListener):
 
             link = "" if default_pkg == pkg else pkg + " / "
 
-            current_file = view.settings().get("_hh_file", None)
+            current_file = cast(Optional[str],
+                                view.settings().get("_hh_file", None))
             if file != current_file:
                 link = link + file + " / "
 

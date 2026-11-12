@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import cast
+
 import sublime  # noqa: F401
 import sublime_plugin
 
@@ -21,8 +25,11 @@ class HyperhelpInternalProcessHeaderCommand(sublime_plugin.TextCommand):
     Nothing happens if the current file does not appear to have an appropriate
     meta-header line.
     """
-    def run(self, edit):
+    def run(self, edit: sublime.Edit) -> None:
         help_file = current_help_file(self.view)
+        if help_file is None:
+            return
+
         first_line = self.view.substr(self.view.full_line(0))
 
         header = parse_help_header(help_file, first_line)
@@ -30,7 +37,7 @@ class HyperhelpInternalProcessHeaderCommand(sublime_plugin.TextCommand):
             return
 
         _hdr_width = 80
-        _time_fmt = hh_setting("hyperhelp_date_format")
+        _time_fmt = cast(str, hh_setting("hyperhelp_date_format"))
 
         file_target = "*%s*" % help_file
         title = header.title
@@ -53,7 +60,7 @@ class HyperhelpInternalProcessHeaderCommand(sublime_plugin.TextCommand):
 
         self.view.replace(edit, self.view.full_line(0), header_line)
 
-    def is_enabled(self):
+    def is_enabled(self) -> bool:
         return _can_post_process(self.view)
 
 

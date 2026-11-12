@@ -1,6 +1,10 @@
+from __future__ import annotations
+
+from typing import Any, Dict, Optional, cast
+
 import sublime
 
-from .voluptuous import Schema, Required, Optional, Any, Invalid, MultipleInvalid
+from .voluptuous import Schema, Required, Optional as VolOptional, Any as VolAny, Invalid, MultipleInvalid
 
 from .common import log
 
@@ -11,13 +15,13 @@ from .common import log
 # The schema to validate that a topic dictionary is properly formatted.
 _topic_schema = Schema({
     Required("topic"): str,
-    Optional("caption"): str,
+    VolOptional("caption"): str,
 
     # Aliases must be an array of strings
-    Optional("aliases"): [str]
+    VolOptional("aliases"): [str]
 })
 
-def _validate_hybrid_array(v):
+def _validate_hybrid_array(v: Any) -> Any:
     """
     Custom validator for the "Hybrid Array" used in help_files and externals.
 
@@ -51,7 +55,7 @@ def _validate_hybrid_array(v):
 
     return v
 
-def _validate_help_contents(v):
+def _validate_help_contents(v: Any) -> Any:
     """
     Recursive validator for the help table of contents in the "help_contents"
     key of the help index.
@@ -66,14 +70,14 @@ def _validate_help_contents(v):
     if not isinstance(v, list):
         raise Invalid("expected a list")
 
-    node = Any(
+    node = VolAny(
         str,
         Schema({
             Required("topic"): str,
-            Optional("caption"): str,
+            VolOptional("caption"): str,
 
             # This is recursive; it points back to this exact function
-            Optional("children"): _validate_help_contents
+            VolOptional("children"): _validate_help_contents
         })
     )
 
@@ -84,19 +88,19 @@ def _validate_help_contents(v):
 # The overall schema used to validate a hyperhelp index file.
 _index_schema = Schema({
     Required("package"): str,
-    Optional("description"): str,
-    Optional("doc_root"): str,
-    Optional("default_caption"): str,
+    VolOptional("description"): str,
+    VolOptional("doc_root"): str,
+    VolOptional("default_caption"): str,
 
     # Any string key is allowed, but all must have values which are Hybrid
     # Arrays (first item string, remainder topic dicts).
     Required("help_files"): Schema({str: _validate_hybrid_array}),
 
     # The table of contents structure is optional
-    Optional("help_contents"): _validate_help_contents,
+    VolOptional("help_contents"): _validate_help_contents,
 
     # Externals behave exactly like help_files structurally
-    Optional("externals"): Schema({str: _validate_hybrid_array})
+    VolOptional("externals"): Schema({str: _validate_hybrid_array})
 })
 
 
@@ -104,7 +108,7 @@ _index_schema = Schema({
 ###----------------------------------------------------------------------------
 
 
-def validate_index(content, index_res):
+def validate_index(content: str, index_res: str) -> Optional[Dict[str, Any]]:
     """
     Given a raw JSON string that represents a help index for a package, perform
     validation on it to ensure that it's valid JSON and also that it conforms
@@ -112,14 +116,15 @@ def validate_index(content, index_res):
 
     Return a decoded dict object on success or None on failure.
     """
-    def validate_fail(message, *args):
+    def validate_fail(message: str, *args: object) -> None:
         log("Error validating index in '%s': %s", index_res, message % args)
 
     try:
         log("Loading help index from '%s'", index_res)
-        raw_dict = sublime.decode_value(content)
+        raw_dict = cast(Dict[str, Any], sublime.decode_value(content))
     except Exception:
-        return validate_fail("Invalid JSON detected; unable to decode")
+        validate_fail("Invalid JSON detected; unable to decode")
+        return None
 
     try:
         _index_schema(raw_dict)
@@ -129,12 +134,14 @@ def validate_index(content, index_res):
         # Voluptuous aggregates errors. We can grab the first one or loop them.
         # path is a list of keys/indexes leading to the exact failure
         path = "".join(f"[{repr(p)}]" for p in error.path)
-        return validate_fail("at %s: %s", path, error.msg)
+        validate_fail("at %s: %s", path, error.msg)
+        return None
 
     # Catch any underlying structural execution errors (e.g., if a custom
     # function like _validate_hybrid_array explodes due to unexpected types)
     except Exception as error:
-        return validate_fail("%s", error)
+        validate_fail("%s", error)
+        return None
 
 
 ###----------------------------------------------------------------------------

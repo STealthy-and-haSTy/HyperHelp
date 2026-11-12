@@ -1,5 +1,9 @@
+from __future__ import annotations
+
 import sublime
 import sublime_plugin  # noqa: F401
+
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 # Inside packages, paths are always posix regardless of the platform in use.
 import posixpath as path
@@ -7,7 +11,7 @@ from collections import OrderedDict
 import re
 
 from .common import log, load_resource
-from .data import HelpData
+from .data import HelpData, HelpTocEntry, HelpTopic
 from .index_validator import validate_index
 
 
@@ -20,8 +24,10 @@ _url_prefix_re = re.compile(r'^https?://')
 ###----------------------------------------------------------------------------
 
 
-def _import_topics(package, topics, aliases, help_topic_dict, caption_tpl,
-                   external=False):
+def _import_topics(package: str, topics: Dict[str, HelpTopic],
+                   aliases: Dict[str, str], help_topic_dict: Dict[str, Any],
+                   caption_tpl: str,
+                   external: bool = False) -> Dict[str, HelpTopic]:
     """
     Parse out a dictionary of help topics from the help index and store all
     topics into the topic dictionary passed in. During the parsing, the
@@ -30,11 +36,11 @@ def _import_topics(package, topics, aliases, help_topic_dict, caption_tpl,
     When def_captions is True, topics that don't have a caption use the document
     title as the caption by default.
     """
-    def _make_caption(topic, source):
+    def _make_caption(topic: str, source: str) -> str:
         return caption_tpl.format(topic=topic, source=source, package=package)
 
     for help_source in help_topic_dict:
-        topic_list = help_topic_dict[help_source]
+        topic_list = cast(List[Any], help_topic_dict[help_source])
 
         # Don't include topics from invalid externals.
         if (external
@@ -48,9 +54,9 @@ def _import_topics(package, topics, aliases, help_topic_dict, caption_tpl,
 
         # Skip the first entry since it's the title of the help source
         for topic_entry in topic_list[1:]:
-            name = topic_entry.get("topic")
+            name = str(topic_entry.get("topic", ""))
             caption = topic_entry.get("caption", None)
-            alias_list = topic_entry.get("aliases", [])
+            alias_list = cast(List[str], topic_entry.get("aliases", []))
             if caption is None:
                 caption = default_caption or _make_caption(name, help_source)
 
@@ -68,11 +74,12 @@ def _import_topics(package, topics, aliases, help_topic_dict, caption_tpl,
             else:
                 topics[name] = {
                     "topic": name,
-                    "caption": caption,
+                    "caption": str(caption),
                     "file": help_source
                 }
 
-            for new_name in [" ".join(name.casefold().split()) for name in alias_list]:
+            for new_name in [" ".join(alias.casefold().split())
+                             for alias in alias_list]:
                 if new_name in topics:
                     log("Alias '%s' is already a topic in %s:%s",
                         new_name, package, help_source)
@@ -88,14 +95,16 @@ def _import_topics(package, topics, aliases, help_topic_dict, caption_tpl,
         if name not in topics:
             topics[name] = {
                 "topic": name,
-                "caption": topic_list[0],
+                "caption": str(topic_list[0]),
                 "file": help_source
             }
 
     return topics
 
 
-def _merge_externals(package, externals, topics, package_files, urls):
+def _merge_externals(package: str, externals: Dict[str, HelpTopic],
+                     topics: Dict[str, HelpTopic], package_files: List[str],
+                     urls: List[str]) -> None:
     """
     Merge the externals into the topic list provided. This ensures that there
     are no duplicate topics during the merge (discarding the external) while
@@ -115,30 +124,33 @@ def _merge_externals(package, externals, topics, package_files, urls):
         topics[topic] = entry
 
 
-def _get_file_metadata(help_topic_dict):
+def _get_file_metadata(help_topic_dict: Dict[str, Any]) -> Dict[str, str]:
     """
     Parse a dictionary of help topics from the help index and return back an
     ordered dictionary associating help file names with their titles.
 
     Assumes the help dictionary has already been validated.
     """
-    retVal = OrderedDict()
+    retVal: Dict[str, str] = OrderedDict()
     for file in sorted(help_topic_dict.keys()):
-        retVal[file] = help_topic_dict[file][0]
+        retVal[file] = str(help_topic_dict[file][0])
 
     return retVal
 
 
-def _get_toc_metadata(help_toc_list, topics, aliases, package):
+def _get_toc_metadata(help_toc_list: Optional[List[Any]],
+                      topics: Dict[str, HelpTopic], aliases: Dict[str, str],
+                      package: str) -> List[HelpTocEntry]:
     """
     Given the table of contents key from the help index and the complete list of
     known topics, return back a table of contents. This will extrapolate a list
     even if the incoming list is empty or non-existant.
     """
     if not help_toc_list:
-        return [topics.get(topic) for topic in sorted(topics.keys())]
+        return [cast(HelpTocEntry, topics[topic])
+                for topic in sorted(topics.keys())]
 
-    def lookup_topic_entry(entry):
+    def lookup_topic_entry(entry: Union[str, Dict[str, Any]]) -> Tuple[str, Optional[HelpTopic]]:
         """
         Expand a toc entry from the index into a full topic object.
         """
@@ -158,14 +170,14 @@ def _get_toc_metadata(help_toc_list, topics, aliases, package):
         entry["file"] = base_obj["file"]
         entry["caption"] = entry.get("caption", base_obj["caption"])
 
-        return topic, entry
+        return topic, cast(HelpTopic, entry)
 
-    def expand_topic_list(item_list):
+    def expand_topic_list(item_list: List[Any]) -> List[HelpTocEntry]:
         """
         Expand an array of help topics that make up part of a table of contents
         into an array of full topic objects recursively.
         """
-        retVal = list()
+        retVal: List[HelpTocEntry] = []
 
         for item in item_list:
             topic, info = lookup_topic_entry(item)
@@ -175,28 +187,31 @@ def _get_toc_metadata(help_toc_list, topics, aliases, package):
 
             child_topics = info.get("children", None)
             if child_topics:
-                info["children"] = expand_topic_list(child_topics)
+                info["children"] = expand_topic_list(
+                    cast(List[Any], child_topics))
 
-            retVal.append(info)
+            retVal.append(cast(HelpTocEntry, info))
 
         return retVal
 
     return expand_topic_list(help_toc_list)
 
 
-def _load_help_index(index_res):
+def _load_help_index(index_res: str) -> Optional[HelpData]:
     """
     Given a package name and the resource filename of the hyperhelp json file,
     load the help index and return it. The return value is None on failure or
     HelpData on success.
     """
     if not index_res.casefold().startswith("packages/"):
-        return log("Index source is not in a package: %s", index_res)
+        log("Index source is not in a package: %s", index_res)
+        return None
 
     content = load_resource(index_res)
 
     if content is None:
-        return log("Unable to load index information from '%s'", index_res)
+        log("Unable to load index information from '%s'", index_res)
+        return None
 
     raw_dict = validate_index(content, index_res)
     if raw_dict is None:
@@ -206,13 +221,16 @@ def _load_help_index(index_res):
 
     # Top level index keys
     package = raw_dict.pop("package", None)
-    description = raw_dict.pop("description", "Help for %s" % package)
+    if not isinstance(package, str):
+        return None
+
+    description = str(raw_dict.pop("description", "Help for %s" % package))
     doc_root = raw_dict.pop("doc_root", None)
-    help_files = raw_dict.pop("help_files", dict())
-    help_toc = raw_dict.pop("help_contents", None)
-    externals = raw_dict.pop("externals", None)
-    caption_tpl = raw_dict.pop("default_caption",
-                                    "Topic {topic} in help source {source}")
+    help_files = cast(Dict[str, Any], raw_dict.pop("help_files", dict()))
+    help_toc = cast(Optional[List[Any]], raw_dict.pop("help_contents", None))
+    externals = cast(Optional[Dict[str, Any]], raw_dict.pop("externals", None))
+    caption_tpl = str(raw_dict.pop("default_caption",
+                                   "Topic {topic} in help source {source}"))
 
     # Warn if the dictionary has too many keys
     for key in raw_dict.keys():
@@ -220,22 +238,24 @@ def _load_help_index(index_res):
 
     # If there is no document root, set it from the index resource; otherwise
     # ensure that it's normalized to appear in the appropriate package.
-    if not doc_root:
+    if not isinstance(doc_root, str) or not doc_root:
         doc_root = path.split(index_res[len("Packages/"):])[0]
     else:
         doc_root = path.normpath("%s/%s" % (containing_pkg, doc_root))
 
     # Gather the unique list of topics.
-    topic_list = dict()
-    alias_list = dict()
+    topic_list: Dict[str, HelpTopic] = dict()
+    alias_list: Dict[str, str] = dict()
     _import_topics(package, topic_list, alias_list, help_files, caption_tpl)
 
-    externals_list = dict()
-    package_files = list()
-    urls = list()
+    externals_list: Dict[str, HelpTopic] = dict()
+    package_files: List[str] = list()
+    urls: List[str] = list()
     if externals is not None:
-        _import_topics(package, externals_list, alias_list, externals, caption_tpl, external=True)
-        _merge_externals(package, externals_list, topic_list, package_files, urls)
+        _import_topics(package, externals_list, alias_list, externals,
+                       caption_tpl, external=True)
+        _merge_externals(package, externals_list, topic_list, package_files,
+                         urls)
 
     # Everything has succeeded.
     return HelpData(package, index_res, description, doc_root,
@@ -244,7 +264,7 @@ def _load_help_index(index_res):
         _get_toc_metadata(help_toc, topic_list, alias_list, package))
 
 
-def _is_canonical_pkg_idx(pkg_idx):
+def _is_canonical_pkg_idx(pkg_idx: HelpData) -> bool:
     """
     Given a loaded package index, return a determination as to whether it is
     the canonical help for that package or not, which is determined by it being
@@ -254,7 +274,8 @@ def _is_canonical_pkg_idx(pkg_idx):
     return containing_pkg == pkg_idx.package
 
 
-def _resolve_index_conflict(existing_idx, new_idx):
+def _resolve_index_conflict(existing_idx: HelpData,
+                            new_idx: HelpData) -> Optional[HelpData]:
     """
     Takes two loaded index files that are for the same package and selects one
     to use, which is returned back. The one selected is determined based on the
@@ -291,7 +312,8 @@ def _resolve_index_conflict(existing_idx, new_idx):
     return None
 
 
-def _filter_index(resources, name_filter):
+def _filter_index(resources: List[str],
+                  name_filter: Optional[Union[str, List[str]]]) -> List[str]:
     """
     Filter a list of package index resources so that only indexes contained in
     the package(s) named are returned. When the filter is empty, the entire
@@ -313,7 +335,8 @@ def _filter_index(resources, name_filter):
     return retVal
 
 
-def _scan_help_packages(help_list=None, name_filter=None):
+def _scan_help_packages(help_list: Optional[Dict[str, HelpData]] = None,
+                        name_filter: Optional[Union[str, List[str]]] = None) -> Dict[str, HelpData]:
     """
     Scan for packages with a help index and load them. If a help list is
     provided, only the help for packages not already in the list will be
@@ -328,7 +351,7 @@ def _scan_help_packages(help_list=None, name_filter=None):
 
     # The list of packages that are considered broken because they have at
     # least two canonical help indexes dedicated to them.
-    broken = []
+    broken: List[str] = []
 
     # Load all of the indexes that aren't already loaded.
     for index_file in [idx for idx in indexes if idx not in loaded]:

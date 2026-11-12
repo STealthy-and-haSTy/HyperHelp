@@ -1,8 +1,13 @@
+from __future__ import annotations
+
+from typing import Optional
+
 import sublime
 import sublime_plugin
 
 from ....helpcore.core import help_index_list, lookup_help_topic
 from ....helpcore.core import is_topic_file_valid
+from ....helpcore.data import HelpData, HelpTopic
 from ....helpcore.help import _get_link_topic
 
 
@@ -19,7 +24,7 @@ class HyperhelpInternalFlagLinksCommand(sublime_plugin.TextCommand):
     This is a non-destructive command and may be executed any time the
     underlying help indexes may have changed, such as at Sublime startup.
     """
-    def run(self, edit):
+    def run(self, edit: sublime.Edit) -> None:
         v = self.view
         active = []
         broken = []
@@ -27,8 +32,12 @@ class HyperhelpInternalFlagLinksCommand(sublime_plugin.TextCommand):
         regions = v.get_regions("_hh_links")
         for idx, region in enumerate(regions):
             link_dat = _get_link_topic(v, idx)
+            if link_dat is None:
+                continue
 
-            pkg_info = help_index_list().get(link_dat["pkg"], None)
+            pkg = link_dat["pkg"]
+            pkg_info = (help_index_list().get(pkg, None)
+                        if pkg is not None else None)
             topic = lookup_help_topic(pkg_info, link_dat["topic"])
 
             if self.link_is_active(pkg_info, topic):
@@ -44,8 +53,12 @@ class HyperhelpInternalFlagLinksCommand(sublime_plugin.TextCommand):
             flags=sublime.DRAW_STIPPLED_UNDERLINE | sublime.PERSISTENT |
                   sublime.DRAW_NO_FILL | sublime.DRAW_NO_OUTLINE)
 
-    def link_is_active(self, pkg_info, topic):
+    def link_is_active(self, pkg_info: Optional[HelpData],
+                       topic: Optional[HelpTopic]) -> bool:
         if topic is None:
+            return False
+
+        if pkg_info is None:
             return False
 
         # Returns None if the topic is not a file, so only consider the topic
@@ -55,7 +68,7 @@ class HyperhelpInternalFlagLinksCommand(sublime_plugin.TextCommand):
 
         return True
 
-    def is_enabled(self):
+    def is_enabled(self) -> bool:
         return self.view.match_selector(0, "text.hyperhelp.help")
 
 

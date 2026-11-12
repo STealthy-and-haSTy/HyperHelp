@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any, Dict, Optional, Tuple
+
 import sublime  # noqa: F401
 import sublime_plugin
 
@@ -13,8 +17,10 @@ class HyperhelpCreateBookmarkCommand(sublime_plugin.ApplicationCommand):
     which is assumed to be correct and is not validated prior to generating the
     new bookmark entry.
     """
-    def run(self, name, package, topic, caret=None, viewport=None):
-        bookmark = {
+    def run(self, name: str, package: Optional[str], topic: Optional[str],
+            caret: Optional[Tuple[int, int]] = None,
+            viewport: Optional[Tuple[float, float]] = None) -> None:
+        bookmark: Dict[str, Any] = {
             "name": name,
             "package": package,
             "topic": topic

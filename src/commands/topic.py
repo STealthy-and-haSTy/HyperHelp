@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Optional
+
 import sublime  # noqa: F401
 import sublime_plugin
 
@@ -14,7 +18,8 @@ class HyperhelpTopicCommand(sublime_plugin.ApplicationCommand):
     Display the provided help topic inside the given package. If package is
     None, infer it from the currently active help view.
     """
-    def run(self, package=None, topic="index.txt"):
+    def run(self, package: Optional[str] = None,
+            topic: str = "index.txt") -> None:
         package = package or current_help_package()
         topic = topic or "index.txt"
 

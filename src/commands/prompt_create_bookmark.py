@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Dict, Optional, Tuple
+
 import sublime
 import sublime_plugin
 
@@ -21,8 +25,10 @@ class HyperhelpPromptCreateBookmarkCommand(sublime_plugin.ApplicationCommand):
     This invokes the actual command to create a bookmark if the user follows
     all interctive prompts.
     """
-    def run(self, bmark_type, bmark_name):
+    def run(self, bmark_type: str, bmark_name: str) -> None:
         v = find_help_view(sublime.active_window())
+        if v is None:
+            return
 
         link_info = None
         if len(v.sel()) > 0 and v.match_selector(v.sel()[0].b, "meta.link"):
@@ -35,8 +41,10 @@ class HyperhelpPromptCreateBookmarkCommand(sublime_plugin.ApplicationCommand):
             pkg_name = link_info["pkg"]
             topic = link_info["topic"]
 
-        caret = (v.sel()[0].a, v.sel()[0].b) if bmark_type == "view" else None
-        viewport = v.viewport_position() if bmark_type == "view" else None
+        caret: Optional[Tuple[int, int]] = (
+            (v.sel()[0].a, v.sel()[0].b) if bmark_type == "view" else None)
+        viewport: Optional[Tuple[float, float]] = (
+            v.viewport_position() if bmark_type == "view" else None)
 
         sublime.run_command("hyperhelp_create_bookmark", {
             "name": bmark_name,
@@ -46,25 +54,37 @@ class HyperhelpPromptCreateBookmarkCommand(sublime_plugin.ApplicationCommand):
             "viewport": viewport
             })
 
-    def is_enabled(self, *kwargs):
+    def is_enabled(self, *kwargs: sublime.Value) -> bool:
         window = sublime.active_window()
         current_view = window.active_view() if window is not None else None
         help_view = find_help_view(window)
 
+        package = current_help_package()
         return (current_view == help_view and
                 current_view is not None and
-                help_index_list().get(current_help_package()) is not None)
+                package is not None and
+                help_index_list().get(package) is not None)
 
-    def input_description(self):
+    def input_description(self) -> str:
         return "Create Bookmark"
 
-    def input(self, args):
+    def input(self, args: Dict[str, sublime.Value]) -> Optional[sublime_plugin.CommandInputHandler]:
         bmark_type = args.get("bmark_type")
         if bmark_type is None:
-            return BookmarkTypeInputHandler(find_help_view())
+            help_view = find_help_view()
+            if help_view is not None:
+                return BookmarkTypeInputHandler(help_view)
+            return None
+
+        if not isinstance(bmark_type, str):
+            return None
 
         if args.get("bmark_name") is None:
-            return BookmarkNameInputHandler(find_help_view(), bmark_type)
+            help_view = find_help_view()
+            if help_view is not None:
+                return BookmarkNameInputHandler(help_view, bmark_type)
+
+        return None
 
 
 ###----------------------------------------------------------------------------

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sublime  # noqa: F401
 import sublime_plugin
 
@@ -16,7 +18,7 @@ class HyperHelpAboutCommand(sublime_plugin.ApplicationCommand):
     Displays a dialog box that indicates what the current version of HyperHelp
     and the core are, for diagnostic purposes.
     """
-    def run(self):
+    def run(self) -> None:
         # Until the log code in the bootstrap and the log code in the core are
         # synchronized, manually do a dedent. I don't want to break anything
         # too close to the initial package announcement.

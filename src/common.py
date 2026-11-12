@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sublime
 import sublime_plugin  # noqa: F401
 
@@ -10,7 +12,7 @@ from .index_watcher import PackageIndexWatcher
 ###----------------------------------------------------------------------------
 
 
-def loaded():
+def loaded() -> None:
     """
     Do package setup at package load time.
     """
@@ -31,7 +33,7 @@ def loaded():
     PackageIndexWatcher()
 
 
-def unloaded():
+def unloaded() -> None:
     """
     Do package cleanup at unload time.
     """

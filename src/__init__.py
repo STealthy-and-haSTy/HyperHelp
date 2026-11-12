@@ -1,13 +1,18 @@
+from __future__ import annotations
+
+from typing import List
+
 from ..help import reload
 
 reload("src", ["contexts", "events", "startup", "common"])
 reload("src.commands")
 
+from . import common as common
 from .events import *
 from .contexts import *
 from .commands import *
 
-__all__ = [
+__all__: List[str] = [
     # common
     "common",
 

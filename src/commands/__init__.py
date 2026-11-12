@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import List
+
 from ...help import reload
 
 reload("src.commands", ["common", "about", "contents", "create_bookmark",
@@ -23,7 +27,7 @@ from .context_create_bookmark import HyperhelpContextCreateBookmarkCommand
 from .topic import HyperhelpTopicCommand
 
 
-__all__ = [
+__all__: List[str] = [
     # handlers
     "BookmarkIdxInputHandler",
     "BookmarkTypeInputHandler",

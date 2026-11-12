@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sublime  # noqa: F401
 import sublime_plugin
 
@@ -14,11 +16,11 @@ class HyperhelpInternalProcessCommentsCommand(sublime_plugin.TextCommand):
     All text scoped as a comment (including newlines) will be redacted from the
     file.
     """
-    def run(self, edit):
+    def run(self, edit: sublime.Edit) -> None:
         for region in reversed(self.view.find_by_selector("comment.block.help")):
             self.view.erase(edit, region)
 
-    def is_enabled(self):
+    def is_enabled(self) -> bool:
         return _can_post_process(self.view)
 
 

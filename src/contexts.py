@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import Any, Optional
+
 import sublime
 import sublime_plugin
 
@@ -9,11 +13,17 @@ from ..helpcore.view import find_help_view
 
 
 class HyperhelpContextListener(sublime_plugin.EventListener):
-    def on_query_context(self, view, key, operator, operand, match_all):
+    def on_query_context(self, view: sublime.View, key: str,
+                         operator: sublime.QueryOperator,
+                         operand: sublime.Value,
+                         match_all: bool) -> Optional[bool]:
         """
         Provide custom key binding contexts for binding keys in hyperhelp
         views.
         """
+        lhs: Any
+        rhs: Any
+
         if key == "hyperhelp.is_help_view":
             help_view = find_help_view(view.window())
             lhs = help_view is not None and help_view.id() == view.id()

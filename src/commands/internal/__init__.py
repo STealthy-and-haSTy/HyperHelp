@@ -1,3 +1,7 @@
+from __future__ import annotations
+
+from typing import List
+
 from ....help import reload
 
 reload("src.commands.internal", ["common", "flag_links", "process_anchors",
@@ -9,7 +13,7 @@ from .process_comments import HyperhelpInternalProcessCommentsCommand
 from .process_header import HyperhelpInternalProcessHeaderCommand
 from .process_links import HyperhelpInternalProcessLinksCommand
 
-__all__ = [
+__all__: List[str] = [
     # internal commands
     "HyperhelpInternalProcessHeaderCommand",
     "HyperhelpInternalProcessCommentsCommand",
