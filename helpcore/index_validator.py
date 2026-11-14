@@ -118,7 +118,7 @@ def validate_index(content, index_res):
     try:
         log("Loading help index from '%s'", index_res)
         raw_dict = sublime.decode_value(content)
-    except:
+    except Exception:
         return validate_fail("Invalid JSON detected; unable to decode")
 
     try:

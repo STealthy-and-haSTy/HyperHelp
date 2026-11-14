@@ -1,4 +1,4 @@
-import sublime
+import sublime  # noqa: F401
 
 import imp
 import sys
@@ -7,7 +7,8 @@ import sys
 ###----------------------------------------------------------------------------
 
 
-def reload(prefix, modules=[""]):
+def reload(prefix, modules=None):
+    modules = [""] if modules is None else modules
     prefix = "HyperHelp.%s." % prefix
 
     for module in modules:

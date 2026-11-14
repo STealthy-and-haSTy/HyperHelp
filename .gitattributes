@@ -2,3 +2,6 @@
 .gitignore export-ignore
 .github/ export-ignore
 .sublime-dependency export-ignore
+pyproject.toml export-ignore
+requirements.txt export-ignore
+TYPE-LINT.md export-ignore

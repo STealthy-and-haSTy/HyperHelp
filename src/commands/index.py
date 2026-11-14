@@ -45,7 +45,7 @@ class HyperhelpIndexCommand(sublime_plugin.ApplicationCommand):
             sublime.active_window().run_command("insert", {"characters": initial_text})
 
     def is_enabled(self, package=None, prompt=False):
-        if prompt == False:
+        if not prompt:
             package = package or current_help_package()
             if package is None:
                 return False

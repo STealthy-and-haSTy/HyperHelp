@@ -1,5 +1,10 @@
 ### ---------------------------------------------------------------------------
 
+from . import common
+from . import core
+from . import data
+from . import help
+from . import view
 
 __version_tuple = (0, 0, 9)
 __version__ = ".".join([str(num) for num in __version_tuple])

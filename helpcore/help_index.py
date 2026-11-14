@@ -1,12 +1,10 @@
 import sublime
-import sublime_plugin
+import sublime_plugin  # noqa: F401
 
 # Inside packages, paths are always posix regardless of the platform in use.
 import posixpath as path
 from collections import OrderedDict
-import os
 import re
-import codecs
 
 from .common import log, load_resource
 from .data import HelpData
@@ -283,7 +281,7 @@ def _resolve_index_conflict(existing_idx, new_idx):
     # The canon of both indexes is identical. If neither is canon, always use
     # the most recently loaded one (in package load order), just as result
     # Sublime resources would.
-    if existing_canon == False:
+    if not existing_canon:
         log("Warning: Selecting new index (%s)", new_idx.index_file)
         return new_idx
 

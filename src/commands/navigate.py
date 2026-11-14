@@ -1,4 +1,4 @@
-import sublime
+import sublime  # noqa: F401
 import sublime_plugin
 
 from ...helpcore.view import find_help_view

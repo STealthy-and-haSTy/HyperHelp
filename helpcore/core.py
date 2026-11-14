@@ -7,8 +7,8 @@ import webbrowser
 
 from urllib.parse import urlparse
 
-from .common import log, hh_syntax, hh_setting
-from .view import find_help_view, update_help_view
+from .common import log, hh_setting
+from .view import find_help_view
 
 from .help_index import _load_help_index, _scan_help_packages
 from .help import _resource_for_help
@@ -228,7 +228,7 @@ def is_topic_url_valid(pkg_info, topic_dict):
         try:
             result = urlparse(topic_dict["file"])
             return result.scheme and result.netloc
-        except:
+        except Exception:
             return False
 
     return None

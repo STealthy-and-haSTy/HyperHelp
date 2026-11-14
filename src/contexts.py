@@ -1,7 +1,6 @@
 import sublime
 import sublime_plugin
 
-from ..helpcore.common import log
 from ..helpcore.common import current_help_package, current_help_file
 from ..helpcore.view import find_help_view
 
@@ -22,7 +21,7 @@ class HyperhelpContextListener(sublime_plugin.EventListener):
 
         elif key == "hyperhelp.is_help_source":
             lhs = (view.match_selector(0, "text.hyperhelp.help") and
-                   view.is_read_only() == False)
+                   not view.is_read_only())
             rhs = bool(operand)
 
         elif key == "hyperhelp.is_help":
@@ -48,7 +47,7 @@ class HyperhelpContextListener(sublime_plugin.EventListener):
         # This one is the legacy; remove this once the others are fully
         # tested.
         elif key == "hyperhelp.is_authoring":
-            lhs = view.is_read_only() == False
+            lhs = not view.is_read_only()
             rhs = bool(operand)
         else:
             return None

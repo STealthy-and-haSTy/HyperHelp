@@ -1,8 +1,6 @@
 import sublime
 import sublime_plugin
 
-from collections.abc import MutableSet
-
 from ..helpcore.core import help_index_list, lookup_help_topic
 from ..helpcore.core import is_topic_file, is_topic_file_valid
 from ..helpcore.core import is_topic_url

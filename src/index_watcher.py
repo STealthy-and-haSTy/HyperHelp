@@ -1,5 +1,5 @@
 import sublime
-import sublime_plugin
+import sublime_plugin  # noqa: F401
 
 from ..helpcore.common import log
 from ..helpcore.core import load_indexes_from_packages

@@ -1,5 +1,5 @@
 import sublime
-import sublime_plugin
+import sublime_plugin  # noqa: F401
 
 from .startup import post_install_update_check
 

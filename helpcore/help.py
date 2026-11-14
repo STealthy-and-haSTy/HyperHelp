@@ -1,8 +1,5 @@
 import sublime
-import sublime_plugin
-
-import re
-import time
+import sublime_plugin  # noqa: F401
 
 from .view import find_help_view, update_help_view
 from .common import log, hh_syntax, current_help_file, current_help_package
@@ -82,7 +79,7 @@ def _enable_post_processing(help_view, enable):
     whether or not the file can be edited and whether various post-processing
     commands are enabled.
     """
-    help_view.set_read_only(not enable);
+    help_view.set_read_only(not enable)
     help_view.settings().set("_hh_post_processing", enable)
 
 
@@ -174,7 +171,6 @@ def _get_link_topic(help_view, link_region):
 
     None is returned when the information cannot be found.
     """
-    topic_data = None
     topics = help_view.settings().get("_hh_links")
 
     try:
@@ -185,7 +181,7 @@ def _get_link_topic(help_view, link_region):
         for idx, region in enumerate(help_view.get_regions("_hh_links")):
             if region == link_region:
                 return topics[idx]
-    except:
+    except Exception:
         pass
 
     return None

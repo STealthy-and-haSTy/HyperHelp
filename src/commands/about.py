@@ -1,4 +1,4 @@
-import sublime
+import sublime  # noqa: F401
 import sublime_plugin
 
 import textwrap

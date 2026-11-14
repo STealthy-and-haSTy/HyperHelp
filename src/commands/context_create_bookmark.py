@@ -1,6 +1,8 @@
 import sublime
 import sublime_plugin
 
+from ...helpcore.common import log
+
 
 ###----------------------------------------------------------------------------
 
